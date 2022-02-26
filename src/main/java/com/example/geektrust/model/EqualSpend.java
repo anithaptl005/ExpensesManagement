@@ -3,7 +3,7 @@ package com.example.geektrust.model;
 import java.util.List;
 
 public class EqualSpend extends Spend {
-	public EqualSpend(double amount, Member paidBy, List<Split> splits) {
+	public EqualSpend(Integer amount, Member paidBy, List<Split> splits) {
         super(amount, paidBy, splits);
     }
 

@@ -3,7 +3,7 @@ package com.example.geektrust.model;
 public class Member {
 
 	private Integer memberId;
-	private String memberName;
+	private final String memberName;
 
 	public Member(Integer memberId, String memberName) {
 		this.memberId = memberId;
@@ -20,10 +20,6 @@ public class Member {
 
 	public String getMemberName() {
 		return memberName;
-	}
-
-	public void setMemberName(String memberName) {
-		this.memberName = memberName;
 	}
 
 }

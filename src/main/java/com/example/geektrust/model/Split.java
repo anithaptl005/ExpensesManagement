@@ -2,7 +2,7 @@ package com.example.geektrust.model;
 
 public abstract class Split {
 	private Member member;
-	double amount;
+	Integer amount;
 
 	public Split(Member member) {
 
@@ -17,11 +17,11 @@ public abstract class Split {
 		this.member = member;
 	}
 
-	public double getAmount() {
+	public Integer getAmount() {
 		return amount;
 	}
 
-	public void setAmount(double amount) {
+	public void setAmount(Integer amount) {
 		this.amount = amount;
 	}
 
