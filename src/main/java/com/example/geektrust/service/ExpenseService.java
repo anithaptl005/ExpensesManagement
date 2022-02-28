@@ -10,13 +10,12 @@ import com.example.geektrust.model.Split;
 public class ExpenseService {
 	public static Spend createExpense(Integer amount, Member paidBy, List<Split> splits) {
 
-		int totalSplits = splits.size();
+		int totalSplits = splits.size()+1;
 		Integer splitAmount = (int) (amount / totalSplits);
-		System.out.println("splitAmount " + splitAmount);
 		for (Split split : splits) {
 			split.setAmount(splitAmount);
 		}
-		splits.get(0).setAmount(splitAmount + (amount - splitAmount * totalSplits));
+//		splits.get(0).setAmount(splitAmount + (amount - splitAmount * totalSplits));
 		return new EqualSpend(amount, paidBy, splits);
 
 	}

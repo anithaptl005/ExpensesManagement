@@ -15,14 +15,14 @@ import com.example.geektrust.model.Split;
 
 public class Main {
 	public static void main(String[] args) {
+//		String filePath = args[0];
 		ExpenseManager expenseManager = new ExpenseManager();
-		String filePath = args[0];
-		readInput(expenseManager, filePath);
+		readInput(expenseManager, "input1.txt");
 	}
 
 	private static void readInput(ExpenseManager expenseManager, String fileName) {
 		try (BufferedReader br = new BufferedReader(
-				new FileReader(fileName))) {
+				new FileReader(String.format("sample_input%s%s", File.separator, fileName)))) {
 
 			Stream<String> sCurrentLine = null;
 //			Integer count = 1;
@@ -36,7 +36,7 @@ public class Main {
 						expenseManager.addMember(new Member((count++), values[1]));
 					} else if (values[0].contains("SPEND")) {
 						List<Split> splits = new ArrayList<Split>();
-						for (int i = values.length - 1; i > 1; i--) {
+						for (int i = values.length - 1; i > 2; i--) {
 
 							Member member = expenseManager.getMemberMap().get(values[i]);
 
@@ -49,7 +49,6 @@ public class Main {
 						}
 						expenseManager.addExpense(Integer.parseInt(values[1]), values[2], splits);
 
-						expenseManager.showBalances();
 
 					} else if (values[0].contains("DUES")) {
 						
