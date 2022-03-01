@@ -1,5 +1,9 @@
 package com.example.geektrust.model;
 
+/**
+ * @author apatil12
+ *
+ */
 public abstract class Split {
 	private Member member;
 	Integer amount;

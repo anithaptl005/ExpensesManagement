@@ -1,20 +1,24 @@
 package com.example.geektrust.model;
 
+/**
+ * @author apatil12
+ *
+ */
 public class Member {
 
-	private Integer memberId;
+	private String memberId;
 	private final String memberName;
 
-	public Member(Integer memberId, String memberName) {
+	public Member(String memberId, String memberName) {
 		this.memberId = memberId;
 		this.memberName = memberName;
 	}
 
-	public Integer getMemberId() {
+	public String getMemberId() {
 		return memberId;
 	}
 
-	public void setMemberId(Integer memberId) {
+	public void setMemberId(String memberId) {
 		this.memberId = memberId;
 	}
 

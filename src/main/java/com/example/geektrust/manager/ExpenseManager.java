@@ -1,34 +1,41 @@
 package com.example.geektrust.manager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.Objects;
 
+import com.example.geektrust.model.DuesCheck;
 import com.example.geektrust.model.Member;
 import com.example.geektrust.model.Spend;
 import com.example.geektrust.model.Split;
 import com.example.geektrust.service.ExpenseService;
 
+/**
+ * @author apatil12
+ *
+ */
+
 public class ExpenseManager {
 
+	private final int MAXIMUM_PEOPLE_IN_ROOM = 3;
 	private Map<String, Member> memberMap;
 	private Map<String, Map<String, Integer>> balanceSheet;
+	private List<Spend> expenses;
 
-	public void addExpense(Integer amount, String paidBy, List<Split> splits) {
-		Spend spend = ExpenseService.createExpense(amount, memberMap.get(paidBy), splits);
-		for (Split split : spend.getSplits()) {
-			Map<String, Integer> balances = balanceSheet.get(split.getMember().getMemberName());
+	public ExpenseManager() {
+		expenses = new ArrayList<>();
+		memberMap = new HashMap<String, Member>();
+		balanceSheet = new HashMap<String, Map<String, Integer>>();
+	}
 
-			if (!balances.containsKey(paidBy)) {
-				balances.put(paidBy, 0);
-			}
-			balances.put(paidBy, balances.get(paidBy) + split.getAmount());
-		}
-		if (splits.size() == 1) {
-			adjustDue(paidBy, splits.get(0).getMember().getMemberName());
-		}
+	public List<Spend> getExpenses() {
+		return expenses;
+	}
+
+	public void setExpenses(List<Spend> expenses) {
+		this.expenses = expenses;
 	}
 
 	public Map<String, Member> getMemberMap() {
@@ -47,53 +54,64 @@ public class ExpenseManager {
 		this.balanceSheet = balanceSheet;
 	}
 
-	public ExpenseManager() {
-		memberMap = new HashMap<String, Member>();
-		balanceSheet = new HashMap<String, Map<String, Integer>>();
+	private boolean validateMaxCount() {
+		return memberMap.size() < MAXIMUM_PEOPLE_IN_ROOM;
 	}
 
 	public void addMember(Member member) {
-		if (memberMap.size() > 2) {
+		if (!validateMaxCount()) {
 			System.out.println("HOUSEFUL");
-		} else {
-			memberMap.put(member.getMemberName(), member);
-			balanceSheet.put(member.getMemberName(), new HashMap<String, Integer>());
-
-			System.out.println("SUCCESS");
+			return;
 		}
+		memberMap.put(member.getMemberName(), member);
+		balanceSheet.put(member.getMemberName(), new HashMap<String, Integer>());
+
+		System.out.println("SUCCESS");
 
 	}
 
+	public void addExpense(Integer amount, String paidBy, List<Split> splits) {
+		Spend spend = ExpenseService.createExpense(amount, memberMap.get(paidBy), splits);
+		for (Split split : spend.getSplits()) {
+			Map<String, Integer> balances = balanceSheet.get(split.getMember().getMemberName());
+
+			if (!balances.containsKey(paidBy)) {
+				balances.put(paidBy, 0);
+			}
+			balances.put(paidBy, balances.get(paidBy) + split.getAmount());
+		}
+//		ExpenseManagerLogic.adjustDue(paidBy, splits.get(0).getMember().getMemberName(),this);
+	}
+
 	public void showDues(String memberName) {
+		List<String> s = new ArrayList<String>(memberMap.keySet());
+		s.remove(memberName);
 		Map<String, Integer> m = balanceSheet.get(memberName);
 		if (m == null) {
 			System.out.println("MEMBER_NOT_FOUND");
 			return;
 		}
-
-		Set<Entry<String, Integer>> memberBalance = balanceSheet.get(memberName).entrySet();
-
-	}
-
-	private void printBalance(String member1, String member2, Integer amount) {
-
-		String member1Name = memberMap.get(member1).getMemberName();
-		String member2Name = memberMap.get(member2).getMemberName();
-		if (amount < 0) {
-			System.out.println("**** " + member1Name + " " + Math.abs(amount));
-		} else if (amount >= 0) {
-			System.out.println("**** " + member2Name + " " + Math.abs(amount));
+		List<DuesCheck> values = new ArrayList<>();
+		for (Map.Entry<String, Integer> memberBalance : balanceSheet.get(memberName).entrySet()) {
+			s.remove(memberBalance.getKey());
+			Integer v = memberBalance.getValue();
+			values.add(new DuesCheck(v, memberBalance.getKey()));
 		}
-	}
+		if (s.size() == 1) {
+			values.add(new DuesCheck(0, s.get(0)));
+		}
+		ExpenseManagerLogic.printDues(values);
 
-	private void printDues(String memberName, Integer amount) {
-		System.out.println("**** " + memberName + " " + Math.abs(amount));
 	}
 
 	public void clearDues(String paidBy, String paidTo, Integer amount) {
+		if (!(memberMap.containsKey(paidBy) && memberMap.containsKey(paidTo))) {
+			System.out.println("MEMBER_NOT_FOUND");
+			return;
+		}
 		Map<String, Integer> balances = balanceSheet.get(paidBy);
 		Integer dues = balances.get(paidTo);
-		if (dues >= amount) {
+		if (Objects.nonNull(dues) && dues >= amount) {
 			balances.put(paidTo, dues - amount);
 			System.out.println(dues - amount);
 		} else {
@@ -102,44 +120,22 @@ public class ExpenseManager {
 	}
 
 	public void removeMember(String memberName) {
-		for (Map.Entry<String, Integer> userBalance : balanceSheet.get(memberName).entrySet()) {
-			if (userBalance.getValue() != 0) {
+		for (Map.Entry<String, Integer> memberBalance : balanceSheet.get(memberName).entrySet()) {
+			if (memberBalance.getValue() != 0) {
 				System.out.println("FAILURE");
 				return;
 			}
 		}
-		memberMap.remove(memberName);
-		balanceSheet.remove(memberName, new HashMap<String, Double>());
-		System.out.println("SUCCESS");
-	}
-
-	private void adjustDue(String paidBy, String paidTo) {
-		Map<String, Integer> paidByDue = balanceSheet.get(paidBy);
-		Map<String, Integer> paidToDue = balanceSheet.get(paidTo);
-		String paidBykey = (String) paidByDue.keySet().toArray()[0];
-		Integer paidByValue = paidByDue.get(paidBykey);
-		if (paidToDue.containsKey(paidBykey)) {
-			Integer val = paidToDue.get(paidBy);
-			Integer balance = paidByValue - val;
-
-			if (Math.signum(balance) == -1) {
-
-				paidToDue.put(paidBy, paidToDue.get(paidBy) - val - balance);
-				paidToDue.put(paidBykey, paidToDue.get(paidBykey) + val + balance);
-				paidByDue.put(paidBykey, 0);
-
-			} else {
-
-				paidToDue.put(paidBy, paidToDue.get(paidBy) - val);
-				paidToDue.put(paidBykey, paidToDue.get(paidBykey) + val);
-				paidByDue.put(paidBykey, balance);
+		for (Map.Entry<String, Member> memberEntry : memberMap.entrySet()) {
+			Map<String, Integer> balance = balanceSheet.get(memberEntry.getKey());
+			if (balance.containsKey(memberName)) {
+				if (balance.get(memberName) > 0) {
+					System.out.println("FAILURE");
+					return;
+				}
 			}
-		} 
-		else {
-
-
-			
 		}
+		System.out.println("SUCCESS");
 	}
 
 }
